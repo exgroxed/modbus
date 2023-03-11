@@ -27,6 +27,7 @@
 #define MDBS_ERR_NONE (0)
 #define MDBS_ERR_NOT_INIT (-1)
 #define MDBS_ERR_OVERFLOW (-2)
+#define MDBS_ERR_RSP (-3)
 
 typedef struct {
     uint8_t DeviceAddress;

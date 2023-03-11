@@ -10,14 +10,14 @@ int ModbusRtuExceptionRspPduEncode(ModbusExceptionRsp *pRsp, uint8_t *pBuf, uint
     if (*pLen < 2) {
         return MDBS_ERR_OVERFLOW;
     }
-    pBuf[0] = pRsp->FunctionCode;
+    pBuf[0] = pRsp->FunctionCode + 0x80;
     pBuf[1] = pRsp->ExceptionCode;
     *pLen = 2;
     return MDBS_ERR_NONE;
 }
 
 int ModbusRtuExceptionRspPduDecode(ModbusExceptionRsp *pRsp, const uint8_t *pBuf) {
-    pRsp->FunctionCode = pBuf[0];
+    pRsp->FunctionCode = pBuf[0] - 0x80;
     pRsp->ExceptionCode = pBuf[1];
     return MDBS_ERR_NONE;
 }
@@ -71,6 +71,7 @@ int ModbusRtuReadCoilsRspPduEncode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf, uint
     if (*pLen < (2 + pRsp->ByteCount)) {
         return MDBS_ERR_OVERFLOW;
     }
+
     if (pRsp->ExceptionCode != MDBS_EC_NONE) {
         ModbusExceptionRsp eRsp;
         ModbusExceptionRspInit(&eRsp);
@@ -78,11 +79,32 @@ int ModbusRtuReadCoilsRspPduEncode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf, uint
         eRsp.ExceptionCode = pRsp->ExceptionCode;
         return ModbusRtuExceptionRspPduEncode(&eRsp, pBuf, pLen);
     }
+
     pBuf[0] = pRsp->FunctionCode;
     pBuf[1] = pRsp->ByteCount;
     for (i = 0; i < pRsp->ByteCount; i++) {
         pBuf[i + 2] = pRsp->CoilStatus[i];
     }
+
     *pLen = 2 + pRsp->ByteCount;
+    return MDBS_ERR_NONE;
+}
+
+int ModbusRtuReadCoilsRspPduDecode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf) {
+    if (pRsp->FunctionCode != MDBS_FC_READ_COILS || pRsp->ExceptionCode != MDBS_EC_NONE) {
+        return MDBS_ERR_NOT_INIT;
+    }
+
+    if (pBuf[0] == MDBS_FC_READ_COILS + 0x80) {
+        ModbusExceptionRsp eRsp;
+        ModbusExceptionRspInit(&eRsp);
+        ModbusRtuExceptionRspPduDecode(&eRsp, pBuf);
+        pRsp->ExceptionCode = eRsp.ExceptionCode;
+        return MDBS_ERR_NONE;
+    }
+
+    pRsp->ByteCount = pBuf[1];
+    pRsp->CoilStatus = &pBuf[2];
+
     return MDBS_ERR_NONE;
 }
