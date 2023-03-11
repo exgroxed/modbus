@@ -16,19 +16,17 @@
 #define MDBS_FC_WRITE_MULTIPLE_COILS 0x1F
 #define MDBS_FC_WRITE_MULTIPLE_REGISTERS 0x10
 
-#define MDBS_EC_OK (0)
-#define MDBS_EC_FUNCTION_NOT_SUPPORTED (-1)
-#define MDBS_EC_INVALID_ADDRESS  (-2)
-#define MDBS_EC_INVALID_QUANTITY (-3)
-#define MDBS_EC_INTERNAL_ERROR (-4)
+#define MDBS_EC_NONE 0
+#define MDBS_EC_FUNCTION_NOT_SUPPORTED 1
+#define MDBS_EC_INVALID_ADDRESS  2
+#define MDBS_EC_INVALID_QUANTITY 3
+#define MDBS_EC_INTERNAL_ERROR 4
 
 #define MDBS_RTU_MAX_DATA_LENGTH 252
 
 #define MDBS_ERR_NONE (0)
-#define MDBS_ERR_REQ_NOT_INIT (-1)
-#define MDBS_ERR_RSP_NOT_INIT (-2)
-#define MDBS_ERR_ADU_NOT_INIT (-3)
-#define MDBS_ERR_BUF_OVERFLOW (-4)
+#define MDBS_ERR_NOT_INIT (-1)
+#define MDBS_ERR_OVERFLOW (-2)
 
 typedef struct {
     uint8_t DeviceAddress;
@@ -45,13 +43,13 @@ int ModbusRtuAduDecode(ModbusRtuAdu *pAdu, uint8_t *pBuf);
 typedef struct {
     uint8_t FunctionCode;
     uint8_t ExceptionCode;
-} ModbusRtuExceptionRsp;
+} ModbusExceptionRsp;
 
-int ModbusRtuExceptionRspInit(ModbusRtuExceptionRsp *pRsp);
+int ModbusExceptionRspInit(ModbusExceptionRsp *pRsp);
 
-int ModbusRtuExceptionRspPduEncode(ModbusRtuExceptionRsp *pRsp, uint8_t *pBuf, uint8_t *pLen);
+int ModbusRtuExceptionRspPduEncode(ModbusExceptionRsp *pRsp, uint8_t *pBuf, uint8_t *pLen);
 
-int ModbusRtuExceptionRspPduDecode(ModbusRtuExceptionRsp *pRsp, uint8_t *pBuf);
+int ModbusRtuExceptionRspPduDecode(ModbusExceptionRsp *pRsp, const uint8_t *pBuf);
 
 typedef struct {
     uint8_t FunctionCode;
