@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <string.h>
 
+typedef int (*TestFunctionPrototype)(void);
+
 int TestModbusReadCoilsReqInit(void) {
     printf("Test ModbusReadCoilsReqInit: ");
 
@@ -258,29 +260,19 @@ int TestModbusRtuReadCoilsRspPduDecode(void) {
 
 int main() {
     printf("============ Test start! ============\r\n");
-    if (TestModbusReadCoilsReqInit() != 0) {
-        return -1;
-    }
-    if (TestModbusRtuReadCoilsReqPduEncode() != 0) {
-        return -1;
-    }
-    if (TestModbusRtuReadCoilsReqAduEncode() != 0) {
-        return -1;
-    }
-    if (TestModbusRtuReadCoilsReqPduDecode() != 0) {
-        return -1;
-    }
-    if (TestModbusRtuReadCoilsReqAduDecode() != 0) {
-        return -1;
-    }
-    if (TestModbusReadCoilsRspInit() != 0) {
-        return -1;
-    }
-    if (TestModbusRtuReadCoilsRspPduEncode() != 0) {
-        return -1;
-    }
-    if (TestModbusRtuReadCoilsRspPduDecode() != 0) {
-        return -1;
+    TestFunctionPrototype Tests[] = {
+            TestModbusReadCoilsReqInit,
+            TestModbusRtuReadCoilsReqPduEncode,
+            TestModbusRtuReadCoilsReqAduEncode,
+            TestModbusRtuReadCoilsReqPduDecode,
+            TestModbusRtuReadCoilsReqAduDecode,
+            TestModbusReadCoilsRspInit,
+            TestModbusRtuReadCoilsRspPduEncode,
+            TestModbusRtuReadCoilsRspPduDecode,
+    };
+    int i;
+    for (i = 0; i < sizeof(Tests) / sizeof(TestFunctionPrototype); i++) {
+        Tests[i]();
     }
     printf("============ Test end! ============\r\n");
     return 0;
