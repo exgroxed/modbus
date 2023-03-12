@@ -1,6 +1,10 @@
 #ifndef MODBUS_H
 #define MODBUS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "stdint.h"
 
 #define MDBS_VERSION_MAJOR 0
@@ -27,19 +31,19 @@
 #define MDBS_ERR_NONE (0)
 #define MDBS_ERR_NOT_INIT (-1)
 #define MDBS_ERR_OVERFLOW (-2)
-#define MDBS_ERR_RSP (-3)
+#define MDBS_ERR_INVALID_PARAMS (-3)
+#define MDBS_ERR_INVALID_INPUT (-4)
+#define MDBS_ERR_WRONG_CRC (-5)
+
+uint16_t ModbusCrc16(const uint8_t *pBuf, int pLen);
 
 typedef struct {
     uint8_t DeviceAddress;
-    uint8_t *Pdu;
+    void *Pdu;
     uint16_t Crc16;
 } ModbusRtuAdu;
 
 int ModbusRtuAduInit(ModbusRtuAdu *pAdu);
-
-int ModbusRtuAduEncode(ModbusRtuAdu *pAdu, uint8_t *pBuf, uint8_t *pLen);
-
-int ModbusRtuAduDecode(ModbusRtuAdu *pAdu, uint8_t *pBuf);
 
 typedef struct {
     uint8_t FunctionCode;
@@ -50,7 +54,7 @@ int ModbusExceptionRspInit(ModbusExceptionRsp *pRsp);
 
 int ModbusRtuExceptionRspPduEncode(ModbusExceptionRsp *pRsp, uint8_t *pBuf, uint8_t *pLen);
 
-int ModbusRtuExceptionRspPduDecode(ModbusExceptionRsp *pRsp, const uint8_t *pBuf);
+int ModbusRtuExceptionRspPduDecode(ModbusExceptionRsp *pRsp, const uint8_t *pBuf, uint8_t pLen);
 
 typedef struct {
     uint8_t FunctionCode;
@@ -62,7 +66,11 @@ int ModbusReadCoilsReqInit(ModbusReadCoilsReq *pReq);
 
 int ModbusRtuReadCoilsReqPduEncode(ModbusReadCoilsReq *pReq, uint8_t *pBuf, uint8_t *pLen);
 
-int ModbusRtuReadCoilsReqPduDecode(ModbusReadCoilsReq *pReq, const uint8_t *pBuf);
+int ModbusRtuReadCoilsReqAduEncode(ModbusRtuAdu *pAdu, uint8_t *pBuf, uint8_t *pLen);
+
+int ModbusRtuReadCoilsReqPduDecode(ModbusReadCoilsReq *pReq, const uint8_t *pBuf, uint8_t pLen);
+
+int ModbusRtuReadCoilsReqAduDecode(ModbusRtuAdu *pAdu, const uint8_t *pBuf, uint8_t pLen);
 
 typedef struct {
     uint8_t FunctionCode;
@@ -75,6 +83,10 @@ int ModbusReadCoilsRspInit(ModbusReadCoilsRsp *pRsp);
 
 int ModbusRtuReadCoilsRspPduEncode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf, uint8_t *pLen);
 
-int ModbusRtuReadCoilsRspPduDecode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf);
+int ModbusRtuReadCoilsRspPduDecode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf, uint8_t pLen);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // MODBUS_H

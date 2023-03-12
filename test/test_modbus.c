@@ -53,13 +53,40 @@ int TestModbusRtuReadCoilsReqPduEncode(void) {
     return 0;
 }
 
+int TestModbusRtuReadCoilsReqAduEncode(void) {
+    printf("Test ModbusRtuReadCoilsReqAduEncode: ");
+
+    uint8_t input[] = {0x11, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0x84};
+    uint8_t aduBuf[256] = {0};
+    uint8_t aduBufLen = 255;
+
+    ModbusReadCoilsReq req;
+    ModbusReadCoilsReqInit(&req);
+    req.StartingAddress = 20;
+    req.QuantityOfCoils = 37;
+
+    ModbusRtuAdu adu;
+    ModbusRtuAduInit(&adu);
+    adu.DeviceAddress = 17;
+    adu.Pdu = &req;
+    ModbusRtuReadCoilsReqAduEncode(&adu, aduBuf, &aduBufLen);
+
+    if (memcmp(input, aduBuf, aduBufLen) != 0) {
+        printf("Wrong result!\r\n");
+        return -1;
+    }
+
+    printf("OK\r\n");
+    return 0;
+}
+
 int TestModbusRtuReadCoilsReqPduDecode(void) {
     printf("Test ModbusRtuReadCoilsReqPduDecode: ");
     uint8_t input[5] = {0x01, 0x00, 0x13, 0x00, 0x25};
     ModbusReadCoilsReq req;
     ModbusReadCoilsReqInit(&req);
-    int rc = ModbusRtuReadCoilsReqPduDecode(&req, input);
-    if (rc != 0) {
+    int rc = ModbusRtuReadCoilsReqPduDecode(&req, input, 5);
+    if (rc != MDBS_ERR_NONE) {
         printf("Error code: %d\r\n", rc);
     }
     if (req.FunctionCode != MDBS_FC_READ_COILS) {
@@ -74,6 +101,42 @@ int TestModbusRtuReadCoilsReqPduDecode(void) {
         printf("Wrong quantity of coils!\r\n");
         return -1;
     }
+    printf("OK\r\n");
+    return 0;
+}
+
+int TestModbusRtuReadCoilsReqAduDecode(void) {
+    printf("Test ModbusRtuReadCoilsReqAduDecode: ");
+
+    uint8_t input[8] = {0x11, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0x84};
+
+    ModbusReadCoilsReq req;
+    ModbusReadCoilsReqInit(&req);
+    ModbusRtuAdu adu;
+    ModbusRtuAduInit(&adu);
+    adu.Pdu = &req;
+    int err = ModbusRtuReadCoilsReqAduDecode(&adu, input, 8);
+    if (err != MDBS_ERR_NONE) {
+        printf("Wrong return code!\r\n");
+        return -1;
+    }
+    if (adu.DeviceAddress != 17) {
+        printf("Wrong device address!\r\n");
+        return -1;
+    }
+    if (req.FunctionCode != MDBS_FC_READ_COILS) {
+        printf("Wrong function code!\r\n");
+        return -1;
+    }
+    if (req.StartingAddress != 20) {
+        printf("Wrong starting address!\r\n");
+        return -1;
+    }
+    if (req.QuantityOfCoils != 37) {
+        printf("Wrong quantity of coils!\r\n");
+        return -1;
+    }
+
     printf("OK\r\n");
     return 0;
 }
@@ -153,8 +216,8 @@ int TestModbusRtuReadCoilsRspPduDecode(void) {
     buf[1] = MDBS_EC_INVALID_ADDRESS;
     ModbusReadCoilsRsp rsp;
     ModbusReadCoilsRspInit(&rsp);
-    int rc = ModbusRtuReadCoilsRspPduDecode(&rsp, buf);
-    if(rc != MDBS_EC_NONE){
+    int rc = ModbusRtuReadCoilsRspPduDecode(&rsp, buf, 2);
+    if (rc != MDBS_EC_NONE) {
         printf("Wrong return code!\r\n");
     }
     if (rsp.FunctionCode != MDBS_FC_READ_COILS) {
@@ -168,8 +231,8 @@ int TestModbusRtuReadCoilsRspPduDecode(void) {
 
     uint8_t buf1[7] = {0x01, 0x05, 0xCD, 0x6B, 0xB2, 0x0E, 0x1B};
     ModbusReadCoilsRspInit(&rsp);
-    rc = ModbusRtuReadCoilsRspPduDecode(&rsp, buf1);
-    if(rc != MDBS_EC_NONE){
+    rc = ModbusRtuReadCoilsRspPduDecode(&rsp, buf1, 7);
+    if (rc != MDBS_EC_NONE) {
         printf("Wrong return code!\r\n");
     }
     if (rsp.FunctionCode != MDBS_FC_READ_COILS) {
@@ -180,11 +243,11 @@ int TestModbusRtuReadCoilsRspPduDecode(void) {
         printf("Wrong exception code!\r\n");
         return -1;
     }
-    if(rsp.ByteCount != 0x05){
+    if (rsp.ByteCount != 0x05) {
         printf("Wrong byte count!\r\n");
         return -1;
     }
-    if(memcmp(&buf1[2], rsp.CoilStatus, 5) != 0){
+    if (memcmp(&buf1[2], rsp.CoilStatus, 5) != 0) {
         printf("Wrong coil status!\r\n");
         return -1;
     }
@@ -201,7 +264,13 @@ int main() {
     if (TestModbusRtuReadCoilsReqPduEncode() != 0) {
         return -1;
     }
+    if (TestModbusRtuReadCoilsReqAduEncode() != 0) {
+        return -1;
+    }
     if (TestModbusRtuReadCoilsReqPduDecode() != 0) {
+        return -1;
+    }
+    if (TestModbusRtuReadCoilsReqAduDecode() != 0) {
         return -1;
     }
     if (TestModbusReadCoilsRspInit() != 0) {
