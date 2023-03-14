@@ -45,6 +45,9 @@ uint16_t ModbusCrc16(const uint8_t *pBuf, int pLen) {
 }
 
 int ModbusRtuAduInit(ModbusRtuAdu *pAdu) {
+    if (pAdu == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
     pAdu->DeviceAddress = 0x00;
     pAdu->Pdu = NULL;
     pAdu->Crc16 = 0;
@@ -52,12 +55,18 @@ int ModbusRtuAduInit(ModbusRtuAdu *pAdu) {
 }
 
 int ModbusExceptionRspInit(ModbusExceptionRsp *pRsp) {
+    if (pRsp == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
     pRsp->FunctionCode = 0;
     pRsp->ExceptionCode = 0;
     return MDBS_ERR_NONE;
 }
 
 int ModbusRtuExceptionRspPduEncode(ModbusExceptionRsp *pRsp, uint8_t *pBuf, uint8_t *pLen) {
+    if (pRsp == NULL || pBuf == NULL || pLen == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
     if (*pLen < 2) {
         return MDBS_ERR_OVERFLOW;
     }
@@ -68,6 +77,9 @@ int ModbusRtuExceptionRspPduEncode(ModbusExceptionRsp *pRsp, uint8_t *pBuf, uint
 }
 
 int ModbusRtuExceptionRspPduDecode(ModbusExceptionRsp *pRsp, const uint8_t *pBuf, uint8_t pLen) {
+    if (pRsp == NULL || pBuf == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
     if (pLen < 2) {
         return MDBS_ERR_INVALID_INPUT;
     }
@@ -77,11 +89,17 @@ int ModbusRtuExceptionRspPduDecode(ModbusExceptionRsp *pRsp, const uint8_t *pBuf
 }
 
 int ModbusReadCoilsReqInit(ModbusReadCoilsReq *pReq) {
+    if (pReq == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
     pReq->FunctionCode = MDBS_FC_READ_COILS;
     return MDBS_ERR_NONE;
 }
 
 int ModbusRtuReadCoilsReqPduEncode(ModbusReadCoilsReq *pReq, uint8_t *pBuf, uint8_t *pLen) {
+    if (pReq == NULL || pBuf == NULL || pLen == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
     if (pReq->FunctionCode != MDBS_FC_READ_COILS) {
         return MDBS_ERR_NOT_INIT;
     }
@@ -102,7 +120,7 @@ int ModbusRtuReadCoilsReqPduEncode(ModbusReadCoilsReq *pReq, uint8_t *pBuf, uint
 int ModbusRtuReadCoilsReqAduEncode(ModbusRtuAdu *pAdu, uint8_t *pBuf, uint8_t *pLen) {
     int err = MDBS_ERR_NONE;
     uint8_t pduLen = *pLen - 1;
-    if (pAdu->Pdu == NULL) {
+    if (pAdu->Pdu == NULL || pAdu == NULL || pBuf == NULL || pLen == NULL) {
         return MDBS_ERR_INVALID_PARAMS;
     }
     if (*pLen < 8) { // minimal adu length
@@ -124,6 +142,9 @@ int ModbusRtuReadCoilsReqAduEncode(ModbusRtuAdu *pAdu, uint8_t *pBuf, uint8_t *p
 }
 
 int ModbusRtuReadCoilsReqPduDecode(ModbusReadCoilsReq *pReq, const uint8_t *pBuf, uint8_t pLen) {
+    if (pReq == NULL || pBuf == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
     if (pReq->FunctionCode != MDBS_FC_READ_COILS) {
         return MDBS_ERR_NOT_INIT;
     }
@@ -140,7 +161,7 @@ int ModbusRtuReadCoilsReqPduDecode(ModbusReadCoilsReq *pReq, const uint8_t *pBuf
 
 int ModbusRtuReadCoilsReqAduDecode(ModbusRtuAdu *pAdu, const uint8_t *pBuf, uint8_t pLen) {
     int err = MDBS_ERR_NONE;
-    if (pAdu->Pdu == NULL) {
+    if (pAdu->Pdu == NULL || pAdu == NULL || pBuf == NULL) {
         return MDBS_ERR_INVALID_PARAMS;
     }
     if (pLen < 8) {
@@ -160,6 +181,9 @@ int ModbusRtuReadCoilsReqAduDecode(ModbusRtuAdu *pAdu, const uint8_t *pBuf, uint
 }
 
 int ModbusReadCoilsRspInit(ModbusReadCoilsRsp *pRsp) {
+    if (pRsp == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
     pRsp->FunctionCode = MDBS_FC_READ_COILS;
     pRsp->ExceptionCode = MDBS_EC_NONE;
     return MDBS_ERR_NONE;
@@ -167,6 +191,9 @@ int ModbusReadCoilsRspInit(ModbusReadCoilsRsp *pRsp) {
 
 int ModbusRtuReadCoilsRspPduEncode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf, uint8_t *pLen) {
     int i;
+    if (pRsp == NULL || pBuf == NULL || pLen == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
     if (pRsp->FunctionCode != MDBS_FC_READ_COILS) {
         return MDBS_ERR_NOT_INIT;
     }
@@ -192,7 +219,34 @@ int ModbusRtuReadCoilsRspPduEncode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf, uint
     return MDBS_ERR_NONE;
 }
 
+int ModbusRtuReadCoilsRspAduEncode(ModbusRtuAdu *pAdu, uint8_t *pBuf, uint8_t *pLen) {
+    int err = MDBS_ERR_NONE;
+    uint8_t pduLen = *pLen - 1;
+    if (pAdu->Pdu == NULL || pAdu == NULL || pBuf == NULL || pLen == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
+    if (*pLen < 6) {
+        return MDBS_ERR_OVERFLOW;
+    }
+    pBuf[0] = pAdu->DeviceAddress;
+    err = ModbusRtuReadCoilsRspPduEncode(pAdu->Pdu, &pBuf[1], &pduLen);
+    if (err != MDBS_ERR_NONE) {
+        return err;
+    }
+    if (*pLen < pduLen + 3) {
+        return MDBS_ERR_OVERFLOW;
+    }
+    pAdu->Crc16 = ModbusCrc16(pBuf, pduLen + 1);
+    pBuf[pduLen + 1] = ((uint8_t *) &pAdu->Crc16)[0];
+    pBuf[pduLen + 2] = ((uint8_t *) &pAdu->Crc16)[1];
+    *pLen = pduLen + 3;
+    return MDBS_ERR_NONE;
+}
+
 int ModbusRtuReadCoilsRspPduDecode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf, uint8_t pLen) {
+    if (pRsp == NULL || pBuf == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
     if (pRsp->FunctionCode != MDBS_FC_READ_COILS || pRsp->ExceptionCode != MDBS_EC_NONE) {
         return MDBS_ERR_NOT_INIT;
     }
@@ -211,5 +265,26 @@ int ModbusRtuReadCoilsRspPduDecode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf, uint
     }
     pRsp->ByteCount = pBuf[1];
     pRsp->CoilStatus = &pBuf[2];
+    return MDBS_ERR_NONE;
+}
+
+int ModbusRtuReadCoilsRspAduDecode(ModbusRtuAdu *pAdu, uint8_t *pBuf, uint8_t pLen) {
+    int err = MDBS_ERR_NONE;
+    if (pAdu->Pdu == NULL || pAdu == NULL || pBuf == NULL) {
+        return MDBS_ERR_INVALID_PARAMS;
+    }
+    if (pLen < 6) {
+        return MDBS_ERR_INVALID_INPUT;
+    }
+    pAdu->DeviceAddress = pBuf[0];
+    err = ModbusRtuReadCoilsRspPduDecode(pAdu->Pdu, &pBuf[1], pLen - 1);
+    if (err != MDBS_ERR_NONE) {
+        return err;
+    }
+    ((uint8_t *) &pAdu->Crc16)[0] = pBuf[pLen - 2];
+    ((uint8_t *) &pAdu->Crc16)[1] = pBuf[pLen - 1];
+    if (pAdu->Crc16 != ModbusCrc16(pBuf, pLen - 2)) {
+        return MDBS_ERR_WRONG_CRC;
+    }
     return MDBS_ERR_NONE;
 }

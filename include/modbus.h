@@ -83,7 +83,11 @@ int ModbusReadCoilsRspInit(ModbusReadCoilsRsp *pRsp);
 
 int ModbusRtuReadCoilsRspPduEncode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf, uint8_t *pLen);
 
+int ModbusRtuReadCoilsRspAduEncode(ModbusRtuAdu *pAdu, uint8_t *pBuf, uint8_t *pLen);
+
 int ModbusRtuReadCoilsRspPduDecode(ModbusReadCoilsRsp *pRsp, uint8_t *pBuf, uint8_t pLen);
+
+int ModbusRtuReadCoilsRspAduDecode(ModbusRtuAdu *pAdu, uint8_t *pBuf, uint8_t pLen);
 
 #ifdef __cplusplus
 }

@@ -6,20 +6,6 @@
 
 typedef int (*TestFunctionPrototype)(void);
 
-int TestModbusReadCoilsReqInit(void) {
-    printf("Test ModbusReadCoilsReqInit: ");
-
-    ModbusReadCoilsReq req;
-    ModbusReadCoilsReqInit(&req);
-    if (req.FunctionCode != MDBS_FC_READ_COILS) {
-        printf("Wrong function code!\r\n");
-        return -1;
-    }
-
-    printf("OK\r\n");
-    return 0;
-}
-
 int TestModbusRtuReadCoilsReqPduEncode(void) {
     printf("Test ModbusRtuReadCoilsReqPduEncode: ");
 
@@ -122,39 +108,10 @@ int TestModbusRtuReadCoilsReqAduDecode(void) {
         printf("Wrong return code!\r\n");
         return -1;
     }
-    if (adu.DeviceAddress != 17) {
-        printf("Wrong device address!\r\n");
-        return -1;
-    }
-    if (req.FunctionCode != MDBS_FC_READ_COILS) {
-        printf("Wrong function code!\r\n");
-        return -1;
-    }
-    if (req.StartingAddress != 20) {
-        printf("Wrong starting address!\r\n");
-        return -1;
-    }
-    if (req.QuantityOfCoils != 37) {
-        printf("Wrong quantity of coils!\r\n");
-        return -1;
-    }
-
-    printf("OK\r\n");
-    return 0;
-}
-
-int TestModbusReadCoilsRspInit(void) {
-    printf("Test ModbusReadCoilsRspInit: ");
-
-    ModbusReadCoilsRsp rsp;
-    ModbusReadCoilsRspInit(&rsp);
-    if (rsp.FunctionCode != MDBS_FC_READ_COILS) {
-        printf("Wrong function code!\r\n");
-        return -1;
-    }
-    if (rsp.ExceptionCode != MDBS_EC_NONE) {
-        printf("Wrong exception code!\r\n");
-        return -1;
+    if (req.FunctionCode != MDBS_FC_READ_COILS
+        || req.StartingAddress != 20
+        || req.QuantityOfCoils != 37) {
+        printf("Wrong result!\r\n");
     }
 
     printf("OK\r\n");
@@ -210,6 +167,37 @@ int TestModbusRtuReadCoilsRspPduEncode(void) {
     return 0;
 }
 
+int TestModbusRtuReadCoilsRspAduEncode(void) {
+    printf("Test ModbusRtuReadCoilsRspPduEncode: ");
+
+    uint8_t input[10] = {0x11, 0x01, 0x05, 0xCD, 0x6B, 0xB2, 0x0E, 0x1B, 0x45, 0xE6};
+
+    uint8_t status[5] = {0xCD, 0x6B, 0xB2, 0x0E, 0x1B};
+    uint8_t output[10] = {0};
+    uint8_t outputLen = 10;
+    ModbusReadCoilsRsp rsp;
+    ModbusReadCoilsRspInit(&rsp);
+    rsp.ByteCount = 5;
+    rsp.CoilStatus = status;
+
+    ModbusRtuAdu adu;
+    ModbusRtuAduInit(&adu);
+    adu.DeviceAddress = 17;
+    adu.Pdu = &rsp;
+    int err = ModbusRtuReadCoilsRspAduEncode(&adu, output, &outputLen);
+    if (err != MDBS_ERR_NONE) {
+        printf("Wrong return code: %d\r\n", err);
+        return -1;
+    }
+    if (memcmp(input, output, 10) != 0) {
+        printf("Wrong result!\r\n");
+        return -1;
+    }
+
+    printf("OK\r\n");
+    return 0;
+}
+
 int TestModbusRtuReadCoilsRspPduDecode(void) {
     printf("Test ModbusRtuReadCoilsRspPduDecode: ");
 
@@ -258,21 +246,46 @@ int TestModbusRtuReadCoilsRspPduDecode(void) {
     return 0;
 }
 
+int TestModbusRtuReadCoilsRspAduDecode(void) {
+    printf("Test ModbusRtuReadCoilsRspAduDecode: ");
+
+    uint8_t buf[10] = {0x11, 0x01, 0x05, 0xCD, 0x6B, 0xB2, 0x0E, 0x1B, 0x45, 0xE6};
+    uint8_t bufLen = 10;
+    ModbusReadCoilsRsp rsp;
+    ModbusReadCoilsRspInit(&rsp);
+    ModbusRtuAdu adu;
+    ModbusRtuAduInit(&adu);
+    adu.Pdu = &rsp;
+    ModbusRtuReadCoilsRspAduDecode(&adu, buf, bufLen);
+    if (rsp.FunctionCode != MDBS_FC_READ_COILS
+        || rsp.ExceptionCode != MDBS_EC_NONE
+        || rsp.ByteCount != 0x05
+        || memcmp(&buf[3], rsp.CoilStatus, 5) != 0) {
+        printf("Wrong result!\r\n");
+        return -1;
+    }
+
+    printf("OK\r\n");
+    return 0;
+}
+
 int main() {
     printf("============ Test start! ============\r\n");
     TestFunctionPrototype Tests[] = {
-            TestModbusReadCoilsReqInit,
             TestModbusRtuReadCoilsReqPduEncode,
             TestModbusRtuReadCoilsReqAduEncode,
             TestModbusRtuReadCoilsReqPduDecode,
             TestModbusRtuReadCoilsReqAduDecode,
-            TestModbusReadCoilsRspInit,
             TestModbusRtuReadCoilsRspPduEncode,
+            TestModbusRtuReadCoilsRspAduEncode,
             TestModbusRtuReadCoilsRspPduDecode,
+            TestModbusRtuReadCoilsRspAduDecode,
     };
     int i;
     for (i = 0; i < sizeof(Tests) / sizeof(TestFunctionPrototype); i++) {
-        Tests[i]();
+        if (Tests[i]() != 0) {
+            return -1;
+        }
     }
     printf("============ Test end! ============\r\n");
     return 0;
