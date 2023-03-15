@@ -281,6 +281,7 @@ int main() {
             TestModbusRtuReadCoilsRspPduDecode,
             TestModbusRtuReadCoilsRspAduDecode,
     };
+
     int i;
     for (i = 0; i < sizeof(Tests) / sizeof(TestFunctionPrototype); i++) {
         if (Tests[i]() != 0) {
